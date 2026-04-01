@@ -4,33 +4,83 @@
   <meta charset="utf-8" />
   <title>Spoke Generator</title>
   <style>
-    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; margin: 2rem auto; max-width: 800px; }
-    h1 { color: #00684A; }
-    label { display: block; font-weight: 600; margin-top: 1rem; }
-    input[type="text"], textarea, select {
-      width: 100%; padding: 0.5rem; margin-top: 0.25rem;
-      border: 1px solid #ccc; border-radius: 4px; font: inherit;
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 2rem auto;
+      max-width: 800px;
     }
-    textarea { min-height: 120px; }
-    .helper { font-size: 0.85rem; color: #555; }
+    h1 {
+      color: #00684A;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-top: 1rem;
+    }
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font: inherit;
+    }
+    textarea {
+      min-height: 120px;
+    }
+    .helper {
+      font-size: 0.85rem;
+      color: #555;
+    }
     button {
-      margin-top: 1.5rem; padding: 0.6rem 1.4rem; border-radius: 4px;
-      border: none; background: #00684A; color: white; font-weight: 600;
+      margin-top: 1.5rem;
+      padding: 0.6rem 1.4rem;
+      border-radius: 4px;
+      border: none;
+      background: #00684A;
+      color: white;
+      font-weight: 600;
       cursor: pointer;
     }
-    button:hover { background: #00513a; }
-    .row { display: flex; gap: 1rem; flex-wrap: wrap; }
-    .row > div { flex: 1; min-width: 220px; }
+    button:hover {
+      background: #00513a;
+    }
+    .row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .row > div {
+      flex: 1;
+      min-width: 220px;
+    }
+    #loading {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.5rem 0.75rem;
+      background: #fff8e1;
+      border: 1px solid #ffcc80;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    #loading.error {
+      background: #ffe6e6;
+      border-color: #ff9999;
+    }
   </style>
 </head>
 <body>
   <h1>Spoke Generator</h1>
   <p class="helper">
-    Enter a company and context, pick a Claude model, and we’ll generate a Spoke PDF
-    in the standard SalesDev format (Hypothesis, Why MongoDB, Proof Points, 3 Whys, etc.).
+    Enter a company and context, pick a model, and we’ll generate a Spoke PDF
+    in the standard SalesDev format (Hypothesis, Why MongoDB, Proof Points, 3 Whys, Talk Track, Email).
   </p>
 
-  <form method="post" action="/generate">
+  <div id="loading"></div>
+
+  <form id="spoke-form" method="post" action="/generate">
     <label>
       Company Name *
       <input type="text" name="company" required />
@@ -46,7 +96,7 @@
       <textarea name="transcript" placeholder="Paste call transcript or research text here if you have it."></textarea>
     </label>
 
-   <div class="row">
+    <div class="row">
       <div>
         <label>
           Provider
@@ -62,10 +112,10 @@
           <select name="model">
             <optgroup label="Anthropic (Claude)">
               <option value="claude-opus-4-6" selected>
-                Claude Opus 4.6 – most capable all-around
+                Claude Opus 4.6 – most capable
               </option>
               <option value="claude-sonnet-4-6">
-                Claude Sonnet 4.6 – best speed/intelligence combo
+                Claude Sonnet 4.6 – best speed/intelligence
               </option>
               <option value="claude-haiku-4-5-20251001">
                 Claude Haiku 4.5 – fastest / cheapest
@@ -86,10 +136,72 @@
     <label>
       Extra Prompting Instructions (optional)
       <textarea name="extra_instructions"
-                placeholder="Tone, specific proof points to emphasize, personas to target, etc."></textarea>
+        placeholder="Tone, specific proof points to emphasize, personas to target, etc."></textarea>
     </label>
 
     <button type="submit">Generate Spoke PDF</button>
   </form>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('spoke-form');
+      const loading = document.getElementById('loading');
+      const submitBtn = form.querySelector('button[type="submit"]');
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        loading.classList.remove('error');
+        loading.style.display = 'block';
+        loading.textContent = 'Generating spoke… this can take 5–15 seconds.';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Generating...';
+
+        try {
+          const formData = new FormData(form);
+
+          const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+          }
+
+          const blob = await response.blob();
+
+          // Try to get filename from headers, fallback to company_spoke.pdf
+          let filename = 'spoke.pdf';
+          const disp = response.headers.get('Content-Disposition') || '';
+          const match = /filename="([^"]+)"/i.exec(disp);
+          if (match && match[1]) {
+            filename = match[1];
+          } else {
+            const company = form.elements['company'].value || 'spoke';
+            filename = `${company.replace(/\s+/g, '_')}_spoke.pdf`;
+          }
+
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+
+          loading.textContent = 'Spoke ready. PDF download should have started.';
+        } catch (err) {
+          console.error(err);
+          loading.classList.add('error');
+          loading.textContent = 'Error generating spoke. Please try again.';
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Generate Spoke PDF';
+        }
+      });
+    });
+  </script>
 </body>
 </html>

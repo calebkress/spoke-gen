@@ -75,6 +75,10 @@ def render_spoke_pdf(spoke: SpokeContent) -> bytes:
     draw_text(spoke.talk_track)
     y -= line_height
 
+    if y < height - 2 * inch: 
+        c.showPage()
+        y = height - 0.75 * inch
+
     # Email Template
     draw_text("Email Template", bold=True)
     draw_text(f"Subject: {spoke.email_template.subject}")
