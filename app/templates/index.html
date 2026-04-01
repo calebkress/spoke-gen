@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Spoke Generator</title>
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; margin: 2rem auto; max-width: 800px; }
+    h1 { color: #00684A; }
+    label { display: block; font-weight: 600; margin-top: 1rem; }
+    input[type="text"], textarea, select {
+      width: 100%; padding: 0.5rem; margin-top: 0.25rem;
+      border: 1px solid #ccc; border-radius: 4px; font: inherit;
+    }
+    textarea { min-height: 120px; }
+    .helper { font-size: 0.85rem; color: #555; }
+    button {
+      margin-top: 1.5rem; padding: 0.6rem 1.4rem; border-radius: 4px;
+      border: none; background: #00684A; color: white; font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #00513a; }
+    .row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .row > div { flex: 1; min-width: 220px; }
+  </style>
+</head>
+<body>
+  <h1>Spoke Generator</h1>
+  <p class="helper">
+    Enter a company and context, pick a Claude model, and we’ll generate a Spoke PDF
+    in the standard SalesDev format (Hypothesis, Why MongoDB, Proof Points, 3 Whys, etc.).
+  </p>
+
+  <form method="post" action="/generate">
+    <label>
+      Company Name *
+      <input type="text" name="company" required />
+    </label>
+
+    <label>
+      Notes / Context
+      <textarea name="notes" placeholder="Account notes, PG plan notes, recent news, etc."></textarea>
+    </label>
+
+    <label>
+      Transcript (optional)
+      <textarea name="transcript" placeholder="Paste call transcript or research text here if you have it."></textarea>
+    </label>
+
+    <div class="row">
+      <div>
+        <label>
+          Provider
+          <select name="provider">
+            <option value="anthropic" selected>Anthropic (Claude)</option>
+            <option value="openai" disabled>OpenAI (coming soon)</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>
+            Model
+            <select name="model">
+                <optgroup label="Anthropic (Claude)">
+                <option value="claude-opus-4-6" selected>
+                    Claude Opus 4.6
+                </option>
+                </optgroup>
+                <optgroup label="OpenAI (coming soon)">
+                <option value="gpt-4.1-mini" disabled>gpt-4.1-mini (coming soon)</option>
+                <option value="gpt-4.1" disabled>gpt-4.1 (coming soon)</option>
+                </optgroup>
+            </select>
+        </label>
+        <div class="helper">
+        Uses Anthropic credits. OpenAI models are shown for future support and are currently disabled.
+        </div>
+      </div>
+    </div>
+
+    <label>
+      Extra Prompting Instructions (optional)
+      <textarea name="extra_instructions"
+                placeholder="Tone, specific proof points to emphasize, personas to target, etc."></textarea>
+    </label>
+
+    <button type="submit">Generate Spoke PDF</button>
+  </form>
+</body>
+</html>

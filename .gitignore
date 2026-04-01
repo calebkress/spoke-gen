@@ -1,0 +1,42 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env
+.venv/
+venv/
+env/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Distribution / build
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# MyPy / Ruff / other caches
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# Logs
+*.log
+
+# Local settings
+*.sqlite3
+*.db
+
+# VS Code settings
+*.code-workspace
