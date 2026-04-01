@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Response
 
+from app.core import pdf
+from app.schemas import spoke
 from app.schemas.spoke import SpokeCreateRequest, SpokeInDB
 from app.services.spoke_generator import create_spoke, get_spoke, get_spoke_pdf_bytes
 
@@ -16,7 +18,7 @@ async def read_spoke(spoke_id: str):
 @router.get("/{spoke_id}/pdf")
 async def read_spoke_pdf(spoke_id: str):
     spoke, pdf = await get_spoke_pdf_bytes(spoke_id)
-    filename = f"spoke-{spoke.id}.pdf"
+    filename = f"{spoke.company.replace(' ', '_')}_spoke.pdf"
     return Response(
         content=pdf,
         media_type="application/pdf",
